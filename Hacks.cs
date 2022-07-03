@@ -36,9 +36,14 @@ namespace HumanFallFlat
             {
                 t_MENU = !t_MENU;
             }
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                Vector3 MainSpawn = Game.currentLevel.spawnPoint.position;
+                localPlayer.human.SpawnAt(MainSpawn);
+            }
             if (Input.GetKeyDown(KeyCode.F5))
             {
-                blink();
+                butterfingerPlayers();
             }
             if (Input.GetKeyDown(KeyCode.F6))
             {
@@ -53,6 +58,7 @@ namespace HumanFallFlat
             {
                 if (TP_Saved == 1)
                 {
+                    localPlayer.human.SetPosition(TP_Pos);
                     localPlayer.human.SetPosition(TP_Pos);
                 }
             }
@@ -121,17 +127,11 @@ namespace HumanFallFlat
             {
                 GUI.Box(new Rect(5f, 100f, 300f, 300f), "");
 
-                if (GUI.Button(new Rect(10f, 105f, 140f, 30f), "Players Release")) 
+                if (GUI.Button(new Rect(10f, 105f, 140f, 30f), "Players Release (F5)")) 
                 {
-                    foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
-                    {
-                        if (!Player.isLocalPlayer)
-                        {
-                            Player.human.ReleaseGrab(0f);
-                        }
-                    }
+                    butterfingerPlayers();
                 }
-                if (GUI.Button(new Rect(155f, 105f, 140f, 30f), "Reset Player")) 
+                if (GUI.Button(new Rect(155f, 105f, 140f, 30f), "Reset Player (F4)")) 
                 {
                     Vector3 MainSpawn = Game.currentLevel.spawnPoint.position;
                     localPlayer.human.SpawnAt(MainSpawn);
@@ -168,7 +168,7 @@ namespace HumanFallFlat
                 {
                     Game.instance.RespawnAllPlayers();
                 }
-                if (GUI.Button(new Rect(155f, 245f, 140f, 30f), "Blink (F5)"))
+                if (GUI.Button(new Rect(155f, 245f, 140f, 30f), "Blink"))
                 {
                     blink();
                 }
@@ -178,6 +178,17 @@ namespace HumanFallFlat
             
 
 
+        }
+
+        public void butterfingerPlayers()
+        {
+            foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
+            {
+                if (!Player.isLocalPlayer)
+                {
+                    Player.human.ReleaseGrab(0f);
+                }
+            }
         }
 
         public void knockoutPlayers()
@@ -201,7 +212,7 @@ namespace HumanFallFlat
 
             Vector3 blinkSpawn = pBlinkPos + pBlinkDir * blinkDistance;
 
-            localPlayer.human.SetPosition(pBlinkDir * blinkDistance);
+            localPlayer.human.SetPosition(blinkSpawn);
         }
 
         public void DrawESP(Vector3 objfootPos, Vector3 objheadPos, Color objColor, String name)
