@@ -36,7 +36,34 @@ namespace HumanFallFlat
             {
                 t_MENU = !t_MENU;
             }
-            
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                blink();
+            }
+            if (Input.GetKeyDown(KeyCode.F6))
+            {
+                knockoutPlayers();
+            }
+            if (Input.GetKeyDown(KeyCode.F7))
+            {
+                TP_Pos = localPlayer.human.ragdoll.transform.position;
+                TP_Saved = 1;
+            }
+            if (Input.GetKeyDown(KeyCode.F8))
+            {
+                if (TP_Saved == 1)
+                {
+                    localPlayer.human.SetPosition(TP_Pos);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.F9))
+            {
+                localPlayer.human.weight -= 500f;
+            }
+            if (Input.GetKeyDown(KeyCode.F10))
+            {
+                localPlayer.human.weight += 500f;
+            }
         }
 
         public void OnGUI()
@@ -83,7 +110,7 @@ namespace HumanFallFlat
                     Vector3 w2s_playerFoot1 = Camera.main.WorldToScreenPoint(playerFootPos1);
                     Vector3 w2s_playerHead1 = Camera.main.WorldToScreenPoint(playerHeadPos1);
 
-                    if (w2s_playerFoot1.z > 0f)
+                    if (w2s_playerFoot1.z > 0f && !Player.isLocalPlayer)
                     {
                         DrawESP(w2s_playerFoot1, w2s_playerHead1, Color.magenta, mPlayer.player.overHeadNameTag.textMesh.text);
                     }
@@ -113,30 +140,24 @@ namespace HumanFallFlat
                 {
                     localPlayer.human.MakeUnconscious(4f);
                 }
-                if (GUI.Button(new Rect(155f, 140f, 140f, 30f), "Knockout Players")) 
+                if (GUI.Button(new Rect(155f, 140f, 140f, 30f), "Knockout Players (F6)")) 
                 {
-                    foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
-                    {
-                        if (!Player.isLocalPlayer)
-                        {
-                            Player.human.MakeUnconscious(4f);
-                        }
-                    }
+                    knockoutPlayers();
                 }
-                if (GUI.Button(new Rect(10f, 175f, 140f, 30f), "Decrease Jump")) 
+                if (GUI.Button(new Rect(10f, 175f, 140f, 30f), "Decrease Jump (F9)")) 
                 {
                     localPlayer.human.weight -= 500f;
                 }
-                if (GUI.Button(new Rect(155f, 175f, 140f, 30f), "Increase Jump")) 
+                if (GUI.Button(new Rect(155f, 175f, 140f, 30f), "Increase Jump (F10)")) 
                 {
                     localPlayer.human.weight += 500f;
                 }
-                if (GUI.Button(new Rect(10f, 210f, 140f, 30f), "Save TP Pos")) 
+                if (GUI.Button(new Rect(10f, 210f, 140f, 30f), "Save TP Pos (F7)")) 
                 {
                     TP_Pos = localPlayer.human.ragdoll.transform.position;
                     TP_Saved = 1;
                 }
-                if (GUI.Button(new Rect(155f, 210f, 140f, 30f), "TP To Saved Pos")) 
+                if (GUI.Button(new Rect(155f, 210f, 140f, 30f), "TP To Saved Pos (F8)")) 
                 {
                     if (TP_Saved == 1)
                     {
@@ -147,13 +168,40 @@ namespace HumanFallFlat
                 {
                     Game.instance.RespawnAllPlayers();
                 }
-                
+                if (GUI.Button(new Rect(155f, 245f, 140f, 30f), "Blink (F5)"))
+                {
+                    blink();
+                }
             }
 
             
             
 
 
+        }
+
+        public void knockoutPlayers()
+        {
+            foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
+            {
+                if (!Player.isLocalPlayer)
+                {
+                    Player.human.MakeUnconscious(4f);
+                }
+            }
+        }
+
+        public void blink()
+        {
+            Vector3 pBlinkPos = localPlayer.human.ragdoll.transform.position;
+            Vector3 pBlinkDir = localPlayer.human.ragdoll.transform.forward;
+            Quaternion pRotation = localPlayer.human.ragdoll.transform.rotation;
+
+            float blinkDistance = 4f;
+
+            Vector3 blinkSpawn = pBlinkPos + pBlinkDir * blinkDistance;
+
+            localPlayer.human.SetPosition(pBlinkDir * blinkDistance);
         }
 
         public void DrawESP(Vector3 objfootPos, Vector3 objheadPos, Color objColor, String name)
