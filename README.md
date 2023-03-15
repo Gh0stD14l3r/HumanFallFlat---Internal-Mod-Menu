@@ -1,18 +1,5 @@
 Raft Mod Menu - C# DLL Source [Base]
-
-This is a basic mod menu created in C#. It is a base which you can add your own items to it or modifications. Currently it has the following.
-
-- Player ESP
-- Self Respawn [F4]
-- Players Release (Other players have butterfingers) [F5]
-- Knockout Self (4 Seconds)
-- Knockout Players (4 Seconds) [F6]
-- Decrease Jump [F9]
-- Increase Jump [f10]
-- Save Teleport Position [F7]
-- Teleport To Saved Position [F8]
-- Respawn All Players
-- Blink (Currently not fully working)
+*** This has had a rework of the GUI and some features to include anti-griefing ***
 
 Insert Key - Show/Hide Menu 
 End Key - Unload DLL File safely
