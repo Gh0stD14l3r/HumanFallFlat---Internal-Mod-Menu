@@ -7,19 +7,11 @@ namespace HumanFallFlat
 {
     class Hacks : MonoBehaviour
     {
-        public static bool t_MENU = true;
-        public static bool t_ESP = false;
-        public static bool t_CTRL = false;
-        public static bool t_FLIGHT = false;
-
-
-        public static bool toggleESP;
-        public static bool toggleControl;
-
+       
         public static Multiplayer.NetPlayer localPlayer = null;
 
-        public static Vector3 TP_Pos;
-        public static int TP_Saved = 0;
+        private static bool cursor = false;
+        public static float Timer = 3f;
 
         public void Start()
         {
@@ -34,76 +26,71 @@ namespace HumanFallFlat
             }
             if (Input.GetKeyDown(KeyCode.Insert))
             {
-                t_MENU = !t_MENU;
+                UI.UI._MainMenu = !UI.UI._MainMenu;
             }
-            if (Input.GetKeyDown(KeyCode.F4))
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
-                Vector3 MainSpawn = Game.currentLevel.spawnPoint.position;
-                localPlayer.human.SpawnAt(MainSpawn);
-            }
-            if (Input.GetKeyDown(KeyCode.F5))
-            {
-                butterfingerPlayers();
-            }
-            if (Input.GetKeyDown(KeyCode.F6))
-            {
-                knockoutPlayers();
-            }
-            if (Input.GetKeyDown(KeyCode.F7))
-            {
-                TP_Pos = localPlayer.human.ragdoll.transform.position;
-                TP_Saved = 1;
-            }
-            if (Input.GetKeyDown(KeyCode.F8))
-            {
-                if (TP_Saved == 1)
+                if (!cursor)
                 {
-                    localPlayer.human.SetPosition(TP_Pos);
-                    localPlayer.human.SetPosition(TP_Pos);
+                    Cursor.visible = true;
+                    cursor = true;
                 }
             }
-            if (Input.GetKeyDown(KeyCode.F9))
+            if (Input.GetKeyUp(KeyCode.Tab))
             {
-                localPlayer.human.weight -= 500f;
+                if (cursor)
+                {
+                    Cursor.visible = false;
+                    cursor = false;
+                }
             }
-            if (Input.GetKeyDown(KeyCode.F10))
-            {
-                localPlayer.human.weight += 500f;
-            }
-        }
 
-        public void OnGUI()
-        {
-            if (t_MENU)
+            Timer += Time.deltaTime;
+            if (Timer >= 5f)
             {
-                GUI.Box(new Rect(5f, 5f, 300f, 90f), "");
-                GUI.Label(new Rect(10f, 5f, 300f, 30f), "Human Fall Flat - Gh0st v1");
-                toggleESP = GUI.Toggle(new Rect(10f, 30f, 290f, 25f), t_ESP, "Enable/Disable ESP");
-                if (toggleESP != t_ESP)
-                {
-                    t_ESP = !t_ESP;
-                }
-                toggleControl = GUI.Toggle(new Rect(10f, 55f, 290f, 25f), t_CTRL, "Control Panel");
-                if (toggleControl != t_CTRL)
-                {
-                    t_CTRL = !t_CTRL;
-                }
-            }
-            
+                Timer = 0f;
 
-            if (localPlayer == null)
-            {
                 foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
                 {
+                    Human mPlayer = Player.human;
+                    
                     if (Player.isLocalPlayer)
                     {
                         localPlayer = Player;
                     }
                 }
             }
-            
 
-            if (t_ESP)
+            foreach(Human _human in UI.UI.butterFingers)
+            {
+                if (_human.hasGrabbed)
+                {
+                    _human.ReleaseGrab(0f);
+                }
+            }
+
+            foreach(Human _human in UI.UI.deadPlayers)
+            {
+                _human.MakeUnconscious(4f);
+            }
+
+            foreach(Human _human in UI.UI.protectedPlayers)
+            {
+                Human _target = _human.grabbedByHuman;
+                if (_target != null)
+                {
+                    _target.ReleaseGrab(0f);
+                }
+                _target = null;
+            }
+            
+        }
+
+        public void OnGUI()
+        {
+            UI.UI.displayUI();
+            
+            if (UI.UI._ESP)
             {
                 foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
                 {
@@ -115,105 +102,16 @@ namespace HumanFallFlat
 
                     Vector3 w2s_playerFoot1 = Camera.main.WorldToScreenPoint(playerFootPos1);
                     Vector3 w2s_playerHead1 = Camera.main.WorldToScreenPoint(playerHeadPos1);
-
+                    DrawBones(mPlayer);
                     if (w2s_playerFoot1.z > 0f && !Player.isLocalPlayer)
                     {
                         DrawESP(w2s_playerFoot1, w2s_playerHead1, Color.magenta, mPlayer.player.overHeadNameTag.textMesh.text);
+                        //DrawBones(mPlayer);
                     }
                 }
             }
-
-            if (t_CTRL && t_MENU)
-            {
-                GUI.Box(new Rect(5f, 100f, 300f, 300f), "");
-
-                if (GUI.Button(new Rect(10f, 105f, 140f, 30f), "Players Release (F5)")) 
-                {
-                    butterfingerPlayers();
-                }
-                if (GUI.Button(new Rect(155f, 105f, 140f, 30f), "Reset Player (F4)")) 
-                {
-                    Vector3 MainSpawn = Game.currentLevel.spawnPoint.position;
-                    localPlayer.human.SpawnAt(MainSpawn);
-                }
-                if (GUI.Button(new Rect(10f, 140f, 140f, 30f), "Knockout self"))  
-                {
-                    localPlayer.human.MakeUnconscious(4f);
-                }
-                if (GUI.Button(new Rect(155f, 140f, 140f, 30f), "Knockout Players (F6)")) 
-                {
-                    knockoutPlayers();
-                }
-                if (GUI.Button(new Rect(10f, 175f, 140f, 30f), "Decrease Jump (F9)")) 
-                {
-                    localPlayer.human.weight -= 500f;
-                }
-                if (GUI.Button(new Rect(155f, 175f, 140f, 30f), "Increase Jump (F10)")) 
-                {
-                    localPlayer.human.weight += 500f;
-                }
-                if (GUI.Button(new Rect(10f, 210f, 140f, 30f), "Save TP Pos (F7)")) 
-                {
-                    TP_Pos = localPlayer.human.ragdoll.transform.position;
-                    TP_Saved = 1;
-                }
-                if (GUI.Button(new Rect(155f, 210f, 140f, 30f), "TP To Saved Pos (F8)")) 
-                {
-                    if (TP_Saved == 1)
-                    {
-                        localPlayer.human.SetPosition(TP_Pos);
-                    }
-                }
-                if (GUI.Button(new Rect(10f, 245f, 140f, 30f), "Respawn All Players"))
-                {
-                    Game.instance.RespawnAllPlayers();
-                }
-                if (GUI.Button(new Rect(155f, 245f, 140f, 30f), "Blink"))
-                {
-                    blink();
-                }
-            }
-
-            
-            
-
-
         }
 
-        public void butterfingerPlayers()
-        {
-            foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
-            {
-                if (!Player.isLocalPlayer)
-                {
-                    Player.human.ReleaseGrab(0f);
-                }
-            }
-        }
-
-        public void knockoutPlayers()
-        {
-            foreach (Multiplayer.NetPlayer Player in UnityEngine.GameObject.FindObjectsOfType(typeof(Multiplayer.NetPlayer)) as Multiplayer.NetPlayer[])
-            {
-                if (!Player.isLocalPlayer)
-                {
-                    Player.human.MakeUnconscious(4f);
-                }
-            }
-        }
-
-        public void blink()
-        {
-            Vector3 pBlinkPos = localPlayer.human.ragdoll.transform.position;
-            Vector3 pBlinkDir = localPlayer.human.ragdoll.transform.forward;
-            Quaternion pRotation = localPlayer.human.ragdoll.transform.rotation;
-
-            float blinkDistance = 4f;
-
-            Vector3 blinkSpawn = pBlinkPos + pBlinkDir * blinkDistance;
-
-            localPlayer.human.SetPosition(blinkSpawn);
-        }
 
         public void DrawESP(Vector3 objfootPos, Vector3 objheadPos, Color objColor, String name)
         {
@@ -228,9 +126,67 @@ namespace HumanFallFlat
             {
                 Render.DrawString(new Vector2(objfootPos.x - (width / 2), (float)Screen.height - objfootPos.y - height), $"{name}", objColor);
             }
+
         }
 
-        
+        private void DrawBones(Human _human)
+        {
+            string c = "";
+            foreach(Transform _t in _human.ragdoll.bones)
+            {
+                c = c + _t.name;
+            }
+            string text = $"Bones: {c}";
+            GUI.TextArea(new Rect(0f, 200f, (float)Screen.width, (float)Screen.height), text);
+
+            Vector3 _head = _human.ragdoll.partHead.skeleton.position;
+            Vector3 _chest = _human.ragdoll.partChest.skeleton.position;
+            Vector3 _hips = _human.ragdoll.partHips.skeleton.position;
+
+            Vector3 _leftthigh = _human.ragdoll.partLeftThigh.skeleton.position;
+            Vector3 _leftleg = _human.ragdoll.partLeftLeg.skeleton.position;
+            Vector3 _leftfoot = _human.ragdoll.partLeftFoot.skeleton.position;
+
+            Vector3 _rightthigh = _human.ragdoll.partRightThigh.skeleton.position;
+            Vector3 _rightleg = _human.ragdoll.partRightLeg.skeleton.position;
+            Vector3 _rightfoot = _human.ragdoll.partRightFoot.skeleton.position;
+
+            Vector3 _leftarm = _human.ragdoll.partLeftArm.skeleton.position;
+            Vector3 _leftforearm = _human.ragdoll.partLeftForearm.skeleton.position;
+            Vector3 _lefthand = _human.ragdoll.partLeftHand.skeleton.position;
+
+            Vector3 _rightarm = _human.ragdoll.partRightArm.skeleton.position;
+            Vector3 _rightforearm = _human.ragdoll.partRightForearm.skeleton.position;
+            Vector3 _righthand = _human.ragdoll.partRightHand.skeleton.position;
+
+            /*DrawBoneLine(_head, _chest, Color.red);
+            DrawBoneLine(_chest, _hips, Color.red);
+
+            DrawBoneLine(_hips, _leftthigh, Color.red);
+            DrawBoneLine(_leftthigh, _leftleg, Color.red);
+            DrawBoneLine(_leftleg, _leftfoot, Color.red);
+
+            DrawBoneLine(_hips, _rightthigh, Color.red);
+            DrawBoneLine(_rightthigh, _rightleg, Color.red);
+            DrawBoneLine(_rightleg, _rightfoot, Color.red);
+
+            DrawBoneLine(_chest, _leftarm, Color.red);
+            DrawBoneLine(_leftarm, _leftforearm, Color.red);
+            DrawBoneLine(_leftforearm, _lefthand, Color.red);
+
+            DrawBoneLine(_chest, _rightarm, Color.red);
+            DrawBoneLine(_rightarm, _rightforearm, Color.red);
+            DrawBoneLine(_rightforearm, _righthand, Color.red);*/
+        }
+
+        public static void DrawBoneLine(Vector3 w2s_objectStart, Vector3 w2s_objectFinish, Color color)
+        {
+            if (w2s_objectStart != null && w2s_objectFinish != null)
+            {
+                Render.DrawLine(new Vector2(w2s_objectStart.x, (float)Screen.height - w2s_objectStart.y), new Vector2(w2s_objectFinish.x, (float)Screen.height - w2s_objectFinish.y), color, 1f);
+            }
+        }
+
 
     }
 }

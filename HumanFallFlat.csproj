@@ -265,8 +265,13 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Hacks.cs" />
+    <Compile Include="Modules\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Render.cs" />
+    <Compile Include="UI\UI.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Objects\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
